@@ -3,7 +3,7 @@
 #include <stdlib.h>
 
 %}
-%token ID NUM T_lt T_gt T_lteq T_gteq T_neq T_eqeq T_pl T_min T_mul T_div T_and T_or T_incr T_decr T_not T_eq INT CHAR FLOAT VOID H MAINTOK INCLUDE BREAK CONTINUE IF ELSE PRINTF STRING SWITCH CASE DEFAULT
+%token ID NUM CHARACTER FLNUM T_lt T_gt T_lteq T_gteq T_neq T_eqeq T_pl T_min T_mul T_div T_and T_or T_incr T_decr T_not T_eq INT CHAR FLOAT VOID H MAINTOK INCLUDE BREAK CONTINUE IF ELSE PRINTF STRING SWITCH CASE DEFAULT
 
 %%
 S
@@ -12,7 +12,6 @@ S
 
 START
       : INCLUDE T_lt H T_gt MAIN
-      | INCLUDE "\"" H "\"" MAIN
       ;
 
 MAIN
@@ -38,27 +37,27 @@ LOOPS
       ;
 
 STMT_SWITCH	
-      : SWITCH '(' EXP ')' {switch_start();} '{' SWITCHBODY '}'
+      : SWITCH '(' COND ')' '{' SWITCHBODY '}'
 	;
 SWITCHBODY	
-      : CASES {switch_end();}    
-	| CASES DEFAULTSTMT {switch_end();}
+      : CASES   
+	| CASES DEFAULTSTMT
 	;
 
 CASES 
-      : CASE NUM {switch_case();} ':' C BREAKSTMT
+      : CASE NUM ':' C BREAKSTMT
 	| 
 	;
 
 BREAKSTMT
-      : BREAK {switch_break();} ';' CASES
-	|{switch_nobreak();} CASES 
+      : BREAK ';' CASES
+	| CASES 
 	;
 
-DEFAULTSTMT : DEFAULT {switch_default();} ':' C DE  
+DEFAULTSTMT : DEFAULT ':' C DE  
 				;
 
-DE 	: BREAK {switch_break();}';'
+DE 	: BREAK ';'
 	|
 	;
 
@@ -89,6 +88,8 @@ COND
 ASSIGN_EXPR
       : ID T_eq ARITH_EXPR
       | TYPE ID T_eq ARITH_EXPR
+      | TYPE ID
+      | TYPE ID'['']' T_eq STRING
       ;
 
 ARITH_EXPR
@@ -110,6 +111,8 @@ PRINT
 LIT
       : ID
       | NUM
+      | FLNUM
+      | CHARACTER
       ;
 TYPE
       : INT
@@ -163,3 +166,29 @@ int main(int argc, char* args[])
   yyparse();
   return 0;
 }
+// STMT_SWITCH	
+//       : SWITCH '(' COND ')' {switch_start();} '{' SWITCHBODY '}'
+// 	;
+// SWITCHBODY	
+//       : CASES {switch_end();}    
+// 	| CASES DEFAULTSTMT {switch_end();}
+// 	;
+
+// CASES 
+//       : CASE NUM {switch_case();} ':' C BREAKSTMT
+// 	| 
+// 	;
+
+// BREAKSTMT
+//       : BREAK {switch_break();} ';' CASES
+// 	|{switch_nobreak();} CASES 
+// 	;
+
+// DEFAULTSTMT : DEFAULT {switch_default();} ':' C DE  
+// 				;
+
+// DE 	: BREAK {switch_break();}';'
+// 	|
+// 	;
+// line 15
+//      | INCLUDE "\"" H "\"" MAIN
