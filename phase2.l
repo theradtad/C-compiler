@@ -3,12 +3,15 @@
     #include<stdio.h>
     int count=1;
 
-    static void comment(void);
+    static void single_line_comment(void);
+    static void multi_line_comment(void);
 %}
 alpha [A-Za-z_]
 digit [0-9]
+floating [+-]?([0-9]*[.])?[0-9]+
 %%
-"/*"    { comment(); }
+"/*"    { multi_line_comment(); }
+"//"    {single_line_comment();}
 [ \t]   ;
 [ \n] count+=1;
 "switch"    return SWITCH;
@@ -28,7 +31,9 @@ digit [0-9]
 {digit}+    return NUM;
 {alpha}({alpha}|{digit})*    return ID;
 {alpha}({alpha}|{digit})*"\.h"?   return H;
+{floating} return FLNUM;
 \".*\" return STRING;
+\'.\'   return CHARACTER;
 "<"   return T_lt;
 ">"     return T_gt;
 "="     return T_eq;
@@ -48,22 +53,35 @@ digit [0-9]
 
 .    return yytext[0];
 %%
-static void comment(void)
+
+static void single_line_comment(void)
+{
+    char c;
+    while((c=input()) !='\n')
+    {
+        ;
+    }
+    count++;
+}
+
+static void multi_line_comment(void)
 {
     int c;
-
+    int flag=0;
     while ((c = input()) != 0)
+    {
         if (c == '*')
         {
-            while ((c = input()) == '*')
-                ;
-
+            c=input();
             if (c == '/')
                 return;
 
             if (c == 0)
                 break;
         }
+        if(c==10)
+            count++;
+    }
     yyerror("Unfinished comment");
 }
 
